@@ -3,6 +3,7 @@ const HOST = '127.0.0.1';
 
 const fs = require('fs');
 const http = require('http');
+const url = require('url');
 
 data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 const dataObj = JSON.parse(data);
@@ -19,6 +20,7 @@ const replaceTemplate = (template, product) => {
   output = output.replace(/{%QUANTITY%}/g, product.quantity);
   output = output.replace(/{%PRICE%}/g, product.price);
   output = output.replace(/{%DESCRIPTION%}/g, product.description);
+  output = output.replace(/{%ID%}/g, product.id);
 
   if (!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
 
@@ -27,7 +29,10 @@ const replaceTemplate = (template, product) => {
 }
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/" || req.url === "/overview") {
+
+  const {pathname, query} = url.parse(req.url, true)
+
+  if (pathname === "/" || pathname === "/overview") {
     const cardHtml  = dataObj.map(el => replaceTemplate(tempCard, el)).join('');
     const overviewHtml = tempOverview.replace(/{%PRODUCT_CARDS%}/g, cardHtml);
     res.writeHead(200, {
@@ -35,11 +40,13 @@ const server = http.createServer((req, res) => {
     })
     res.end(overviewHtml);
   }
-  else if (req.url === "/product") {
+  else if (pathname === "/product") {
+    const productObj = dataObj[query.id];
+    const productHtml = replaceTemplate(tempProduct, productObj);
     res.writeHead(200, {
       "Content-Type": "text/html"
     })
-    res.end(tempProduct)
+    res.end(productHtml)
   }
   else {
     res.writeHead(404, {
