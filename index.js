@@ -4,7 +4,7 @@ const HOST = '127.0.0.1';
 const fs = require('fs');
 const http = require('http');
 
-data = fs.readFileSync(`./dev-data/data.json`, 'utf-8');
+data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 
 const server = http.createServer((req, res) => {
   if(req.url === '/api/data'){
